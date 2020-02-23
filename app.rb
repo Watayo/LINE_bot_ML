@@ -24,7 +24,7 @@ post '/callback' do
   end
 
   events = client.parse_events_from(body)
-  events.each { |event|
+  events.each do |event|
     case event
     when Line::Bot::Event::Message
       case event.type
@@ -41,7 +41,6 @@ post '/callback' do
         tf.write(response.body)
       end
     end
-  }
-
+  end
   "OK!"
 end
