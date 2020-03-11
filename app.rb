@@ -30,7 +30,8 @@ post '/callback' do
       case event.type
       when Line::Bot::Event::MessageType::Text
         if event.message['text'] =~ /タスク登録/
-        message[:text] =  "成功！"
+          message[:text] =  "成功！"
+        end
         client.reply_message(event['replyToken'], message)
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = client.get_message_content(event.message['id'])
