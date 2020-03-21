@@ -24,3 +24,5 @@ gem 'rake'
 gem 'activerecord' , '5.2.3'
 gem 'sinatra-activerecord'
 gem 'bcrypt'
+
+gem 'google-api-client'
