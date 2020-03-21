@@ -1,7 +1,11 @@
 require 'bundler/setup'
 Bundler.require
 require 'sinatra/reloader' if development?
+require 'json'
+require 'jwt'
 require 'line/bot'
+
+enable :sessions
 
 get '/' do
   "Hello World"

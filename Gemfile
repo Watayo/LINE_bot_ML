@@ -10,7 +10,17 @@ gem 'fastri'
 gem 'sinatra'
 gem 'sinatra-contrib'
 
+gem 'dotenv' #.gitignoreを使うために入れる
+
+gem 'json'
+gem 'jwt'
+
 gem 'rest-client'
-gem 'docomoru'
+
 
 gem 'line-bot-api'
+
+gem 'rake'
+gem 'activerecord' , '5.2.3'
+gem 'sinatra-activerecord'
+gem 'bcrypt'
