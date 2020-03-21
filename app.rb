@@ -6,6 +6,7 @@ require 'jwt'
 require 'line/bot'
 
 enable :sessions
+Dotenv.load #.envファイルを読み込む必須
 
 get '/' do
   "Hello World"
