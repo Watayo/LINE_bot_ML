@@ -14,23 +14,24 @@ require 'json'
 enable :sessions
 Dotenv.load #.envファイルを読み込む必須
 
-get '/' do
-  "Hello, Worlds!"
-end
-
 # -------------Google calender-------------
-class Calender
+
+APPLICATION_NAME = 'line-calender-bot'
+MY_CALENDAR_ID = 'ryo0616mani@gmail.com'
+CLIENT_SECRET_PATH = 'json/line-bot-1584786230158-490e708234e3.json'
+
+class Calendar
   def initialize
-    @service = Google::Apis::CalenderV3::CalenderService.new
-    @service.client_options.application_name = ENV['APPLICATION_NAME']
-    @service.authorization = authorization
-    @calender_id = ENV['MY_CALENDER_ID']
+    @service = Google::Apis::CalendarV3::CalendarService.new
+    @service.client_options.application_name = APPLICATION_NAME
+    @service.authorization = authorize
+    @calendar_id = MY_CALENDAR_ID
   end
 
   def authorize
     authorizer = Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: File.open(ENV['CLIENT_SECRET_PATH']),
-      scope: Google::Apis::CalenderV3::AUTH_CALENDER
+      json_key_io: File.open(CLIENT_SECRET_PATH),
+      scope: Google::Apis::CalendarV3::AUTH_CALENDAR
     )
     authorizer.fetch_access_token!
     authorizer
@@ -46,6 +47,25 @@ class Calender
   end
 end
 
+
+
+
+# ------------ROUTING設定----------------
+get '/' do
+
+  google = Calendar.new
+  plans = google.get_schedule
+  texts = []
+  plans.each do |plan|
+    texts.push plan.summary + "\r" #summary = カレンダー情報の題名
+
+  end
+
+
+  "Hello, Worlds!"
+end
+
+
 # ------------LINE botの設定----------------
 def client
   @client ||= Line::Bot::Client.new { |config|
@@ -53,7 +73,10 @@ def client
     config.channel_secret = ENV["LINE_CHANNEL_SECRET"]
     config.channel_token = ENV["LINE_CHANNEL_TOKEN"]
   }
+
 end
+
+
 
 post '/callback' do
   body = request.body.read
@@ -63,17 +86,40 @@ post '/callback' do
     error 400 do 'Bad Request' end
   end
 
+
+  google = Calendar.new
+  plans = google.get_schedule
+
   events = client.parse_events_from(body)
   events.each do |event|
     case event
     when Line::Bot::Event::Message
       case event.type
       when Line::Bot::Event::MessageType::Text
-        message = {
-          type: 'text',
-          text: event.message['text']
-        }
-        client.reply_message(event['replyToken'], message)
+        if event.message['text'] =~ /スケジュール/
+          google = Calendar.new
+          plans = google.get_schedule
+            if !plans.nil?
+              message = {
+                type: 'text',
+                text: "あなたの今後1週間の予定は\r"
+              }
+              num = 0
+              plans.each do |plan|
+                num += 1
+                message[:text] = message[:text] << "#{num} : #{plan.summary}\r"
+              end
+              message[:text] << "..頑張ってね（´ω｀）ﾄﾎﾎ…"
+              client.reply_message(event['replyToken'], message)
+            else
+              message = {
+                type: 'text',
+                text: "あなたの今後1週間の予定はありません！٩( ᐛ )و"
+              }
+              client.reply_message(event['replyToken'], message)
+            end
+        end
+
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = client.get_message_content(event.message['id'])
         tf = Tempfile.open("content")
